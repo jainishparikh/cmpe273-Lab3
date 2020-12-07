@@ -5,6 +5,9 @@ import cookie from 'react-cookies';
 import axios from 'axios';
 import ReactModal from 'react-modal';
 import BACKEND_URL from '../../../config/config'
+import { graphql, compose, withApollo } from 'react-apollo';
+import { Query } from "react-apollo";
+import { updateUserProfileMutation } from '../../../mutations/mutations'
 
 
 export class Profile extends Component {
@@ -98,79 +101,123 @@ export class Profile extends Component {
         e.preventDefault();
         console.log( "in handle submit" )
         if ( !this.state.error ) {
-            axios
-                .put( BACKEND_URL + "/users/about", this.state ).then( response => {
-                    if ( response.status === 200 ) {
-
-                        if ( cookie.load( 'email' ) !== this.state.email ) {
-                            cookie.remove( "email", {
-                                path: '/'
-                            } );
-                            cookie.save( "email", this.state.email, {
-                                path: '/',
-                                httpOnly: false,
-                                maxAge: 90000
-                            } )
-                        }
-                        if ( cookie.load( 'name' ) !== this.state.name ) {
-                            cookie.remove( "name", {
-                                path: '/'
-                            } );
-                            cookie.save( "name", this.state.name, {
-                                path: '/',
-                                httpOnly: false,
-                                maxAge: 90000
-                            } )
-                        }
-                        window.location.assign( "/users/about" );
+            this.props.updateUserProfileMutation( {
+                variables: {
+                    name: this.state.name,
+                    email: this.state.email,
+                    nickName: this.state.nickName,
+                    contactNumber: this.state.contactNumber,
+                    dateOfBirth: this.state.dateOfBirth,
+                    city: this.state.city,
+                    state: this.state.state,
+                    country: this.state.country,
+                    headline: this.state.headline,
+                    yelpingSince: this.state.yelpingSince,
+                    thingsILove: this.state.thingsILove,
+                    blogLink: this.state.blogLink,
+                }
+                //refetchQueries: [{ query: getBooksQuery }]
+            } ).then( ( response ) => {
+                if ( response.data.updateUserProfile.email !== null ) {
+                    if ( cookie.load( 'email' ) !== this.state.email ) {
+                        cookie.remove( "email", {
+                            path: '/'
+                        } );
+                        cookie.save( "email", this.state.email, {
+                            path: '/',
+                            httpOnly: false,
+                            maxAge: 90000
+                        } )
                     }
+                    if ( cookie.load( 'name' ) !== this.state.name ) {
+                        cookie.remove( "name", {
+                            path: '/'
+                        } );
+                        cookie.save( "name", this.state.name, {
+                            path: '/',
+                            httpOnly: false,
+                            maxAge: 90000
+                        } )
+                    }
+                    window.location.assign( "/users/about" );
 
-                } ).catch( err => {
-                    console.log( "error in updating profile" );
-                } )
+                } else {
+                    console.log( "error" )
+                }
+            } );
+            //     axios
+            //         .put( BACKEND_URL + "/users/about", this.state ).then( response => {
+            //             if ( response.status === 200 ) {
+
+            //                 if ( cookie.load( 'email' ) !== this.state.email ) {
+            //                     cookie.remove( "email", {
+            //                         path: '/'
+            //                     } );
+            //                     cookie.save( "email", this.state.email, {
+            //                         path: '/',
+            //                         httpOnly: false,
+            //                         maxAge: 90000
+            //                     } )
+            //                 }
+            //                 if ( cookie.load( 'name' ) !== this.state.name ) {
+            //                     cookie.remove( "name", {
+            //                         path: '/'
+            //                     } );
+            //                     cookie.save( "name", this.state.name, {
+            //                         path: '/',
+            //                         httpOnly: false,
+            //                         maxAge: 90000
+            //                     } )
+            //                 }
+            //                 window.location.assign( "/users/about" );
+            //             }
+
+            //         } ).catch( err => {
+            //             console.log( "error in updating profile" );
+            //         } )
         }
 
     }
 
-    //Image Upload toggle
-    toggleImageUpdate = ( e ) => {
-        this.setState( {
-            profileImageUpdate: !this.state.profileImageUpdate
-        } )
-    }
+    // //Image Upload toggle
+    // toggleImageUpdate = ( e ) => {
+    //     this.setState( {
+    //         profileImageUpdate: !this.state.profileImageUpdate
+    //     } )
+    // }
 
-    //Image Upload
-    handleImageUpload = ( e ) => {
-        this.setState( {
-            newProfileImage: e.target.files[ 0 ]
-        } )
-    }
+    // //Image Upload
+    // handleImageUpload = ( e ) => {
+    //     this.setState( {
+    //         newProfileImage: e.target.files[ 0 ]
+    //     } )
+    // }
 
-    //Image Submit
-    handleImageSubmit = ( e ) => {
-        e.preventDefault();
-        this.toggleImageUpdate();
-        console.log( this.state.newProfileImage );
-        const formData = new FormData();
-        formData.append( 'myImage', this.state.newProfileImage, this.state.newProfileImage.name )
-        formData.append( 'userID', this.state.userID )
-        const config = {
-            headers: {
-                'content-type': 'multipart/form-data'
-            }
-        }
-        axios
-            .post( BACKEND_URL + '/users/uploadpicture', formData, config ).then( ( response ) => {
-                console.log( response.data.filename )
-                this.setState( {
-                    profileImagePath: BACKEND_URL + "/images/profilepics/" + response.data.filename + ""
+    // //Image Submit
+    // handleImageSubmit = ( e ) => {
+    //     e.preventDefault();
+    //     this.toggleImageUpdate();
+    //     console.log( this.state.newProfileImage );
+    //     const formData = new FormData();
+    //     formData.append( 'myImage', this.state.newProfileImage, this.state.newProfileImage.name )
+    //     formData.append( 'userID', this.state.userID )
+    //     const config = {
+    //         headers: {
+    //             'content-type': 'multipart/form-data'
+    //         }
+    //     }
+    //     axios
+    //         .post( BACKEND_URL + '/users/uploadpicture', formData, config ).then( ( response ) => {
+    //             console.log( response.data.filename )
+    //             this.setState( {
+    //                 profileImagePath: BACKEND_URL + "/images/profilepics/" + response.data.filename + ""
 
-                } )
-            } ).catch( err => {
-                console.log( "Error in image upload: ", err );
-            } )
+    //             } )
+    //         } ).catch( err => {
+    //             console.log( "Error in image upload: ", err );
+    //         } )
 
-    }
+    // }
 
 
 
@@ -196,7 +243,7 @@ export class Profile extends Component {
                         </div>
                         <div className="col-10">
 
-                            <div className="row ml-3">
+                            {/* <div className="row ml-3">
                                 <button className="btn btn-primary" onClick={ this.toggleImageUpdate }>Change Profile Picture</button>
                                 <ReactModal isOpen={ this.state.profileImageUpdate } >
                                     <form onSubmit={ this.handleImageSubmit } encType='multipart/form-data' style={ { textAlign: "Center" } }>
@@ -206,7 +253,7 @@ export class Profile extends Component {
                                     </form>
                                 </ReactModal>
 
-                            </div>
+                            </div> */}
                             <form onSubmit={ this.handleOnSubmit }>
                                 <div className="row m-1">
                                     <div className="col-5">
@@ -320,4 +367,8 @@ export class Profile extends Component {
     }
 }
 
-export default Profile
+// export default Profile
+export default compose(
+    graphql( updateUserProfileMutation, { name: "updateUserProfileMutation" } ),
+
+)( Profile );

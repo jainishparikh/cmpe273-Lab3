@@ -4,6 +4,9 @@ import BACKEND_URL from '../../../config/config';
 import cookie from 'react-cookies';
 import IndividualOrder from './IndividualOrder';
 import { Redirect } from 'react-router';
+import { graphql, compose, withApollo } from 'react-apollo';
+import { Query } from "react-apollo";
+import { getOrdersByUserID } from '../../../queries/queries'
 
 export class Orders extends Component {
     constructor( props ) {
@@ -16,20 +19,35 @@ export class Orders extends Component {
     }
     componentDidMount () {
         var userID = cookie.load( 'id' )
-        axios.get( BACKEND_URL + '/orders/users/' + userID ).then( response => {
-            if ( response.status === 200 ) {
-                response.data.map( order => {
-                    this.setState( {
-                        Orders: [ ...this.state.Orders, order ],
-
-                    } )
-                } )
-                console.log( "Orders", this.state );
-
+        this.props.client.query( {
+            query: getOrdersByUserID,
+            variables: {
+                userID: userID
             }
-        } ).catch( error => {
-            console.log( "Error in fetching orders: ", error );
+        } ).then( response => {
+            console.log( "res", response.data )
+            this.setState( {
+                Orders: response.data.getOrdersByUserID
+            } )
+            console.log( this.state )
+        } ).catch( e => {
+            console.log( "error", e );
+
         } )
+        // axios.get( BACKEND_URL + '/orders/users/' + userID ).then( response => {
+        //     if ( response.status === 200 ) {
+        //         response.data.map( order => {
+        //             this.setState( {
+        //                 Orders: [ ...this.state.Orders, order ],
+
+        //             } )
+        //         } )
+        //         console.log( "Orders", this.state );
+
+        //     }
+        // } ).catch( error => {
+        //     console.log( "Error in fetching orders: ", error );
+        // } )
 
     }
 
@@ -51,10 +69,10 @@ export class Orders extends Component {
         let sortedOrders = filteredOrders.sort( ( a, b ) => b.orderID - a.orderID )
         // console.log( "sorted", sortedOrders )
         let displayOrder = sortedOrders.map( ( order, index ) => {
-            console.log( "in orders", order.orderID )
+            console.log( "in orders", order._id )
             return (
                 <div>
-                    <IndividualOrder key={ order.orderID } orderData={ order } />
+                    <IndividualOrder key={ order._id } orderData={ order } />
                 </div>
             )
         } )
@@ -97,4 +115,9 @@ export class Orders extends Component {
     }
 }
 
-export default Orders
+//export default Orders
+export default compose(
+    withApollo,
+    graphql( getOrdersByUserID, { name: "getOrdersByUserID" } ),
+
+)( Orders );

@@ -13,11 +13,8 @@ export class IndividualRestaurant extends Component {
     }
 
     displayPicture = ( name ) => {
-        if ( name === null || name === "" ) {
-            var restaurantImagePath = profile_picture
-        } else {
-            var restaurantImagePath = BACKEND_URL + "/images/profilepics/" + name
-        }
+        var restaurantImagePath = profile_picture
+
         return (
 
             <img src={ restaurantImagePath } width="200px" height="180px" alt="" />
@@ -43,7 +40,7 @@ export class IndividualRestaurant extends Component {
 
                     </div>
                     <div className="col-2">
-                        <Link className="btn btn-danger" to={ `/users/restaurantprofiles/${ this.props.restaurantData.email }/${ this.props.restaurantData.restaurantID }` } >
+                        <Link className="btn btn-danger" to={ `/users/restaurantprofiles/${ this.props.restaurantData.email }/${ this.props.restaurantData._id }` } >
                             View Restaurant
                     </Link>
                     </div>

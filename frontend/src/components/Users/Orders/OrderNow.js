@@ -3,6 +3,9 @@ import BACKEND_URL from '../../../config/config'
 import axios from 'axios';
 import cookie from 'react-cookies';
 import { Redirect } from 'react-router';
+import { graphql, compose, withApollo } from 'react-apollo';
+import { Query } from "react-apollo";
+import { placeOrderMutation } from '../../../mutations/mutations'
 
 export class OrderNow extends Component {
     constructor( props ) {
@@ -30,23 +33,36 @@ export class OrderNow extends Component {
             orderStatus: 'Order Received',
             orderMethod: this.state.deliveryMethod
         }
-        axios.post( BACKEND_URL + '/orders/users/placeOrder', data ).then( response => {
-            console.log( "Added order successfullt now adding dishes", response.data );
-            var dishData = {
-                OrderItems: this.state.OrderItems,
-                orderID: response.data.orderID
+        this.props.placeOrderMutation( {
+            variables: {
+                userID: cookie.load( 'id' ),
+                restaurantID: this.props.orderData.restaurantID,
+                orderStatus: 'Order Received',
+                orderMethod: this.state.deliveryMethod,
+                dishes: this.props.orderData.dishes
             }
-            axios.post( BACKEND_URL + '/orders/users/placeOrder/addDishes', dishData ).then( response => {
-                console.log( "Dishes successfully mapped" );
-                this.setState( {
-                    orderPlaced: true
-                } )
-            } ).catch( error => {
-                console.log( "Error in mapping dishes in orders:", error )
-            } )
-        } ).catch( error => {
-            console.log( "Error in posting order: ", error )
-        } )
+            //refetchQueries: [{ query: getBooksQuery }]
+        } ).then( ( response ) => {
+            console.log( "res", response )
+        } );
+
+        // axios.post( BACKEND_URL + '/orders/users/placeOrder', data ).then( response => {
+        //     console.log( "Added order successfullt now adding dishes", response.data );
+        //     var dishData = {
+        //         OrderItems: this.state.OrderItems,
+        //         orderID: response.data.orderID
+        //     }
+        //     axios.post( BACKEND_URL + '/orders/users/placeOrder/addDishes', dishData ).then( response => {
+        //         console.log( "Dishes successfully mapped" );
+        //         this.setState( {
+        //             orderPlaced: true
+        //         } )
+        //     } ).catch( error => {
+        //         console.log( "Error in mapping dishes in orders:", error )
+        //     } )
+        // } ).catch( error => {
+        //     console.log( "Error in posting order: ", error )
+        // } )
 
 
     }
@@ -114,4 +130,9 @@ export class OrderNow extends Component {
     }
 }
 
-export default OrderNow
+//export default OrderNow
+// export default Profile
+export default compose(
+    graphql( placeOrderMutation, { name: "placeOrderMutation" } ),
+
+)( OrderNow );

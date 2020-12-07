@@ -120,39 +120,39 @@ const RootQuery = new GraphQLObjectType( {
     name: 'RootQueryType',
     fields: {
         //users---------------------------------------------------------------------
-        //user login
-        userLogin: {
-            type: userType,
-            args: {
-                email: {
-                    type: GraphQLString
-                },
-                password: {
-                    type: GraphQLString
-                }
-            },
-            resolve ( parent, args ) {
-                console.log( "In user login " + args.email )
-                return users.findOne( { "email": args.email } ).then( doc => {
-                    if ( bcrypt.compareSync( args.password, doc.password ) ) {
-                        let payload = {
-                            _id: doc._id,
-                            type: "users",
-                            email: doc.email,
-                            name: doc.name
-                        }
-                        return payload
-                    } else {
-                        console.log( "invalid credentials" )
-                    }
-                    return doc
-                } ).catch( error => {
-                    console.log( "error", error )
-                    return error
+        // //user login
+        // userLogin: {
+        //     type: userType,
+        //     args: {
+        //         email: {
+        //             type: GraphQLString
+        //         },
+        //         password: {
+        //             type: GraphQLString
+        //         }
+        //     },
+        //     resolve ( parent, args ) {
+        //         console.log( "In user login " + args.email )
+        //         return users.findOne( { "email": args.email } ).then( doc => {
+        //             if ( bcrypt.compareSync( args.password, doc.password ) ) {
+        //                 let payload = {
+        //                     _id: doc._id,
+        //                     type: "users",
+        //                     email: doc.email,
+        //                     name: doc.name
+        //                 }
+        //                 return payload
+        //             } else {
+        //                 console.log( "invalid credentials" )
+        //             }
+        //             return doc
+        //         } ).catch( error => {
+        //             console.log( "error", error )
+        //             return error
 
-                } )
-            }
-        },
+        //         } )
+        //     }
+        // },
         //get user profile by email
         getUserProfile: {
             type: userType,
@@ -194,38 +194,38 @@ const RootQuery = new GraphQLObjectType( {
         },
 
         //restuarnts---------------------------------------------------------------------
-        restaurantLogin: {
-            type: restauranttype,
-            args: {
-                email: {
-                    type: GraphQLString
-                },
-                password: {
-                    type: GraphQLString
-                }
-            },
-            resolve ( parent, args ) {
-                console.log( "In user login " + args.email )
-                return restaurants.findOne( { "email": args.email } ).then( doc => {
-                    if ( bcrypt.compareSync( args.password, doc.password ) ) {
-                        let payload = {
-                            _id: doc._id,
-                            type: "restaurant",
-                            email: doc.email,
-                            name: doc.name
-                        }
-                        return payload
-                    } else {
-                        console.log( "invalid credentials" )
-                    }
-                    return doc
-                } ).catch( error => {
-                    console.log( "error", error )
-                    return error
+        // restaurantLogin: {
+        //     type: restauranttype,
+        //     args: {
+        //         email: {
+        //             type: GraphQLString
+        //         },
+        //         password: {
+        //             type: GraphQLString
+        //         }
+        //     },
+        //     resolve ( parent, args ) {
+        //         console.log( "In user login " + args.email )
+        //         return restaurants.findOne( { "email": args.email } ).then( doc => {
+        //             if ( bcrypt.compareSync( args.password, doc.password ) ) {
+        //                 let payload = {
+        //                     _id: doc._id,
+        //                     type: "restaurant",
+        //                     email: doc.email,
+        //                     name: doc.name
+        //                 }
+        //                 return payload
+        //             } else {
+        //                 console.log( "invalid credentials" )
+        //             }
+        //             return doc
+        //         } ).catch( error => {
+        //             console.log( "error", error )
+        //             return error
 
-                } )
-            }
-        },
+        //         } )
+        //     }
+        // },
         //get all restaurants
         getAllRestaurants: {
             type: new GraphQLList( restauranttype ),
@@ -248,7 +248,7 @@ const RootQuery = new GraphQLObjectType( {
                 }
             },
             resolve ( parent, args ) {
-                console.log( "In fetch owner profile " + args.email )
+                console.log( "In fetch restaurant profile " + args.email )
                 return restaurants.findOne( { "email": args.email } ).then( doc => {
 
                     return doc
@@ -364,7 +364,40 @@ const Mutation = new GraphQLObjectType( {
     name: 'Mutation',
     fields: {
         //users---------------------------------------------------------------------
+        //user login
+        userLogin: {
+            type: userType,
+            args: {
+                email: {
+                    type: GraphQLString
+                },
+                password: {
+                    type: GraphQLString
+                }
+            },
+            resolve ( parent, args ) {
+                console.log( "In user login " + args.email )
+                return users.findOne( { "email": args.email } ).then( doc => {
+                    if ( bcrypt.compareSync( args.password, doc.password ) ) {
+                        let payload = {
+                            _id: doc._id,
+                            type: "users",
+                            email: doc.email,
+                            name: doc.name
+                        }
+                        return payload
+                    } else {
+                        console.log( "invalid credentials" )
+                        return "Invalid Credentials"
+                    }
 
+                } ).catch( error => {
+                    console.log( "error", error )
+                    return "404"
+
+                } )
+            }
+        },
         userSignUp: {
             type: userType,
             args: {
@@ -455,7 +488,39 @@ const Mutation = new GraphQLObjectType( {
         },
 
         //restuarnts---------------------------------------------------------------------
+        restaurantLogin: {
+            type: restauranttype,
+            args: {
+                email: {
+                    type: GraphQLString
+                },
+                password: {
+                    type: GraphQLString
+                }
+            },
+            resolve ( parent, args ) {
+                console.log( "In user login " + args.email )
+                return restaurants.findOne( { "email": args.email } ).then( doc => {
+                    if ( bcrypt.compareSync( args.password, doc.password ) ) {
+                        let payload = {
+                            _id: doc._id,
+                            type: "restaurant",
+                            email: doc.email,
+                            name: doc.name
+                        }
+                        return payload
+                    } else {
+                        console.log( "invalid credentials" )
+                        return "Invalid Credentials"
+                    }
 
+                } ).catch( error => {
+                    console.log( "error", error )
+                    return "404"
+
+                } )
+            }
+        },
         //restaurant signup
         restaurantSignUp: {
             type: restauranttype,

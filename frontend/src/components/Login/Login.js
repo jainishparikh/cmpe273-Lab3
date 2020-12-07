@@ -5,6 +5,9 @@ import axios from 'axios';
 import cookie from "react-cookies";
 import BACKEND_URL from '../../config/config'
 import yelp_image from '../../images/yelp-login.png'
+import { graphql, compose } from 'react-apollo';
+import { userLogin, restaurantLogin } from '../../mutations/mutations'
+
 
 export class Login extends Component {
     constructor( props ) {
@@ -68,60 +71,158 @@ export class Login extends Component {
             } )
         } else {
 
-            var backend_path = '';
-            if ( this.state.type === 'users' ) {
-                backend_path = '/users/login'
-            } else if ( this.state.type === 'restaurants' ) {
-                backend_path = '/restaurants/login'
-            }
-            console.log( this.state );
-            console.log( BACKEND_URL + backend_path )
-            axios
-                .post( BACKEND_URL + backend_path, this.state )
-                .then( ( response ) => {
-                    if ( response.status === 200 ) {
+            // var backend_path = '';
+            // if ( this.state.type === 'users' ) {
+            //     backend_path = '/users/login'
+            // } else if ( this.state.type === 'restaurants' ) {
+            //     backend_path = '/restaurants/login'
+            // }
+            // console.log( this.state );
+            // console.log( BACKEND_URL + backend_path )
+            if ( this.state.type === "users" ) {
+                this.props.userLogin( {
+                    variables: {
+                        email: this.state.email,
+                        password: this.state.password,
+                    }
+                    //refetchQueries: [{ query: getBooksQuery }]
+                } ).then( ( response ) => {
+                    console.log( response )
+                    if ( response.data.userLogin._id == null ) {
                         this.setState( {
-                            error: false
+                            error: true,
+                            errorMessage: "Invalid Credentials"
+                        } )
+                    } else {
+                        this.setState( {
+                            error: false,
+                            errorMessage: ""
                         } )
                         cookie.save( "auth", true, {
                             path: '/',
                             httpOnly: false,
                             maxAge: 90000
                         } )
-                        cookie.save( "id", response.data.id, {
+                        cookie.save( "id", response.data.userLogin._id, {
                             path: '/',
                             httpOnly: false,
                             maxAge: 90000
                         } )
-                        cookie.save( "name", response.data.name, {
+                        cookie.save( "name", response.data.userLogin.name, {
                             path: '/',
                             httpOnly: false,
                             maxAge: 90000
                         } )
-                        cookie.save( "email", response.data.email, {
+                        cookie.save( "email", response.data.userLogin.email, {
                             path: '/',
                             httpOnly: false,
                             maxAge: 90000
                         } )
-                        cookie.save( "type", this.state.type, {
+                        cookie.save( "type", "users", {
                             path: '/',
                             httpOnly: false,
                             maxAge: 90000
                         } )
-                        if ( this.state.type === 'users' ) {
-                            window.location.assign( '/users/dashboard' );
-                        } else if ( this.state.type === 'restaurants' ) {
-                            window.location.assign( '/restaurants/about' );
-                        }
+                        window.location.assign( '/users/dashboard' );
                     }
-                } )
-                .catch( ( err ) => {
-                    this.setState( {
-                        error: true,
-                        errorMessage: "Invalid Credentials"
-                    } )
-
+                    //     window.location.replace( '/login' )
                 } );
+
+            } else if ( this.state.type === "restaurants" ) {
+                this.props.restaurantLogin( {
+                    variables: {
+                        email: this.state.email,
+                        password: this.state.password,
+                    }
+                    //refetchQueries: [{ query: getBooksQuery }]
+                } ).then( ( response ) => {
+                    console.log( response )
+                    if ( response.data.restaurantLogin._id === null ) {
+                        this.setState( {
+                            error: true,
+                            errorMessage: "Invalid Credentials"
+                        } )
+                    } else {
+                        this.setState( {
+                            error: false,
+                            errorMessage: ""
+                        } )
+                        cookie.save( "auth", true, {
+                            path: '/',
+                            httpOnly: false,
+                            maxAge: 90000
+                        } )
+                        cookie.save( "id", response.data.restaurantLogin._id, {
+                            path: '/',
+                            httpOnly: false,
+                            maxAge: 90000
+                        } )
+                        cookie.save( "name", response.data.restaurantLogin.name, {
+                            path: '/',
+                            httpOnly: false,
+                            maxAge: 90000
+                        } )
+                        cookie.save( "email", response.data.restaurantLogin.email, {
+                            path: '/',
+                            httpOnly: false,
+                            maxAge: 90000
+                        } )
+                        cookie.save( "type", "restaurants", {
+                            path: '/',
+                            httpOnly: false,
+                            maxAge: 90000
+                        } )
+                        window.location.assign( '/restaurants/about' );
+                    }
+                    //     window.location.replace( '/login' )
+                } );
+            }
+            // axios
+            //     .post( BACKEND_URL + backend_path, this.state )
+            //     .then( ( response ) => {
+            //         if ( response.status === 200 ) {
+            //             this.setState( {
+            //                 error: false
+            //             } )
+            //             cookie.save( "auth", true, {
+            //                 path: '/',
+            //                 httpOnly: false,
+            //                 maxAge: 90000
+            //             } )
+            //             cookie.save( "id", response.data.id, {
+            //                 path: '/',
+            //                 httpOnly: false,
+            //                 maxAge: 90000
+            //             } )
+            //             cookie.save( "name", response.data.name, {
+            //                 path: '/',
+            //                 httpOnly: false,
+            //                 maxAge: 90000
+            //             } )
+            //             cookie.save( "email", response.data.email, {
+            //                 path: '/',
+            //                 httpOnly: false,
+            //                 maxAge: 90000
+            //             } )
+            //             cookie.save( "type", this.state.type, {
+            //                 path: '/',
+            //                 httpOnly: false,
+            //                 maxAge: 90000
+            //             } )
+            //             if ( this.state.type === 'users' ) {
+            //                 window.location.assign( '/users/dashboard' );
+            //             } else if ( this.state.type === 'restaurants' ) {
+            //                 window.location.assign( '/restaurants/about' );
+            //             }
+            //         }
+            //     } )
+            //     .catch( ( err ) => {
+            //         this.setState( {
+            //             error: true,
+            //             errorMessage: "Invalid Credentials"
+            //         } )
+
+            //     } );
         }
     };
 
@@ -136,6 +237,7 @@ export class Login extends Component {
         }
         let renderError = null
         if ( this.state.error ) {
+            console.log( "in error", this.state.errorMessage )
             renderError = <div style={ { 'color': 'red' } }>{ this.state.errorMessage }</div>
         }
         return (
@@ -198,4 +300,8 @@ export class Login extends Component {
     }
 }
 
-export default Login
+export default compose(
+    graphql( userLogin, { name: "userLogin" } ),
+    graphql( restaurantLogin, { name: "restaurantLogin" } )
+
+)( Login );

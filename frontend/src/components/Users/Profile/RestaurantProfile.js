@@ -5,10 +5,15 @@ import cookie from 'react-cookies';
 import Modal from 'react-modal';
 import axios from 'axios';
 import GetDishes from '../Orders/GetDishes';
+import IndividualDish from '../Orders/IndividualDish';
 import OrderNow from '../Orders/OrderNow';
 import BACKEND_URL from '../../../config/config';
 import profile_picture from '../../../images/restaurant.jpeg';
+
 import AddReview from '../Reviews/AddReview'
+import { graphql, compose, withApollo } from 'react-apollo';
+import { Query } from "react-apollo";
+import { getRestaurantProfile } from '../../../queries/queries'
 
 export class RestaurantProfile extends Component {
     constructor( props ) {
@@ -23,6 +28,7 @@ export class RestaurantProfile extends Component {
             timing: "",
             dishPopUp: false,
             profileImagePath: profile_picture,
+            dishes: [],
             images: [],
             Orders: [],
             reviewPopUp: false,
@@ -32,35 +38,59 @@ export class RestaurantProfile extends Component {
     }
     componentDidMount () {
         let email = this.props.match.params.restaurantEmail
-        axios.get( BACKEND_URL + '/restaurants/about/' + email ).then( ( response ) => {
-            console.log( response )
-            if ( response.status === 200 ) {
-                console.log( "got data" )
-                let imagePath = BACKEND_URL + "/images/profilepics/" + response.data.profilePicture
-                if ( response.data.profilePicture === null ) {
-                    console.log( "inside imagepath null" )
-                    imagePath = profile_picture
-                }
-                this.setState( {
-                    restaurantID: response.data.restaurantID,
-                    name: response.data.name,
-                    email: response.data.email,
-                    contact: response.data.contact,
-                    location: response.data.location,
-                    description: response.data.description,
-                    timing: response.data.timing,
-                    profileImagePath: imagePath,
+        this.props.client.query( {
+            query: getRestaurantProfile,
 
-                } )
+            variables: {
+                email: email
             }
 
-        } ).catch( ( err ) => {
-            console.log( " error getting restaurant data" )
-            this.setState( {
-                error: true
-            } )
+        } ).then( response => {
+            console.log( "res", response.data.getRestaurantProfile )
 
-        } );
+            let imagePath = profile_picture
+            this.setState( {
+                restaurantID: response.data.getRestaurantProfile._id,
+                name: response.data.getRestaurantProfile.name,
+                email: response.data.getRestaurantProfile.email,
+                contact: response.data.getRestaurantProfile.contact,
+                location: response.data.getRestaurantProfile.location,
+                description: response.data.getRestaurantProfile.description,
+                timing: response.data.getRestaurantProfile.timing,
+                dishes: response.data.getRestaurantProfile.dishes,
+                profileImagePath: imagePath,
+
+            } )
+            console.log( this.state )
+        } ).catch( e => {
+            console.log( "error", e );
+
+        } )
+        // axios.get( BACKEND_URL + '/restaurants/about/' + email ).then( ( response ) => {
+        //     console.log( response )
+        //     if ( response.status === 200 ) {
+        //         console.log( "got data" )
+        //         let imagePath = profile_picture
+        //         this.setState( {
+        //             restaurantID: response.data.restaurantID,
+        //             name: response.data.name,
+        //             email: response.data.email,
+        //             contact: response.data.contact,
+        //             location: response.data.location,
+        //             description: response.data.description,
+        //             timing: response.data.timing,
+        //             profileImagePath: imagePath,
+
+        //         } )
+        //     }
+
+        // } ).catch( ( err ) => {
+        //     console.log( " error getting restaurant data" )
+        //     this.setState( {
+        //         error: true
+        //     } )
+
+        // } );
     }
 
     //change state to toggle review popup
@@ -105,13 +135,19 @@ export class RestaurantProfile extends Component {
         if ( !( cookie.load( "auth" ) && cookie.load( "type" ) === "users" ) ) {
             redirectVar = <Redirect to="/login" />
         }
-
-        let displayDishImages = this.state.images.map( ( image ) => {
-            var dishImagePath = BACKEND_URL + "/images/dishes/" + image
+        let details = this.state.dishes.map( ( dish ) => {
+            console.log( "dish", dish )
             return (
-                <img src={ dishImagePath } style={ { "margin": "10px" } } width="200px" height="90%" alt="" />
+                <IndividualDish removeFromOrder={ this.removeFromOrderProfile } addToOrder={ this.addToOrderProfile } dishData={ dish } />
             )
         } )
+
+        // let displayDishImages = this.state.images.map( ( image ) => {
+        //     var dishImagePath = BACKEND_URL + "/images/dishes/" + image
+        //     return (
+        //         <img src={ dishImagePath } style={ { "margin": "10px" } } width="200px" height="90%" alt="" />
+        //     )
+        // } )
 
         return (
             < div >
@@ -170,27 +206,19 @@ export class RestaurantProfile extends Component {
                             <div className="row" style={ { "padding-left": "40px" } }>
                                 <h3>Here's What We Offer</h3>
                             </div>
-                            <div className="row" style={ { "padding-left": "20px" } }>
-                                <div style={ {
-                                    "width": "auto",
-                                    "overflow": "auto",
-                                    "white-space": "nowrap",
-                                    "height": "200px"
-                                } }>
-                                    { displayDishImages }
-                                </div>
-                            </div>
+
                             {/* Display dishes */ }
                             <div className="row">
                                 <div className="dishes">
-                                    <GetDishes removeFromOrder={ this.removeFromOrderProfile } addToOrder={ this.addToOrderProfile } restaurantID={ this.props.match.params.restaurantID } displayDishes={ this.displayImageStore } />
+                                    {/* <GetDishes removeFromOrder={ this.removeFromOrderProfile } addToOrder={ this.addToOrderProfile } restaurantID={ this.props.match.params.restaurantID } displayDishes={ this.displayImageStore } /> */ }
+                                    { details }
                                 </div>
                             </div>
 
                         </div>
 
                     </div>
-                </div>
+                </div >
 
 
             </div >
@@ -200,4 +228,9 @@ export class RestaurantProfile extends Component {
 
 }
 
-export default RestaurantProfile
+//export default RestaurantProfile
+export default compose(
+    withApollo,
+    graphql( getRestaurantProfile, { name: "getRestaurantProfile" } ),
+
+)( RestaurantProfile );

@@ -6,6 +6,9 @@ import axios from 'axios';
 import profile_picture from '../../../images/profile.png';
 import BACKEND_URL from '../../../config/config';
 import GetReviews from '../Reviews/GetReviews';
+import { graphql, compose, withApollo } from 'react-apollo';
+import { Query } from "react-apollo";
+import { getUserProfile } from '../../../queries/queries'
 
 export class UserAbout extends Component {
     constructor( props ) {
@@ -30,42 +33,71 @@ export class UserAbout extends Component {
     }
     componentDidMount () {
         let email = cookie.load( "email" )
-        // let email = "user2@gmail.com"
-        return axios.get( BACKEND_URL + '/users/about/' + email ).then( ( response ) => {
-            // console.log( response )
-            if ( response.status === 200 ) {
-                console.log( "got data" )
-                let imagePath = BACKEND_URL + "/images/profilepics/" + response.data.profilePicture
-                if ( response.data.profilePicture === null ) {
-                    console.log( "inside imagepath null" )
-                    imagePath = profile_picture
-                }
-                this.setState( {
-                    userID: response.data.userID,
-                    name: response.data.name,
-                    nickName: response.data.nickName,
-                    email: response.data.email,
-                    contactNumber: response.data.contactNumber,
-                    dateOfBirth: response.data.dateOfBirth,
-                    city: response.data.city,
-                    state: response.data.state,
-                    country: response.data.country,
-                    headline: response.data.headline,
-                    yelpingSince: response.data.yelpingSince,
-                    thingsILove: response.data.thingsILove,
-                    blogLink: response.data.blogLink,
-                    profileImagePath: imagePath
-                } )
-            }
-            // console.log( this.state );
+        this.props.client.query( {
+            query: getUserProfile,
 
-        } ).catch( ( err ) => {
-            console.log( " error getting user data", err )
+            variables: {
+                email: email
+            }
+        } ).then( response => {
             this.setState( {
-                error: true
+                userID: response.data.getUserProfile._id,
+                name: response.data.getUserProfile.name,
+                nickName: response.data.getUserProfile.nickName,
+                email: response.data.getUserProfile.email,
+                contactNumber: response.data.getUserProfile.contactNumber,
+                dateOfBirth: response.data.getUserProfile.dateOfBirth,
+                city: response.data.getUserProfile.city,
+                state: response.data.getUserProfile.state,
+                country: response.data.getUserProfile.country,
+                headline: response.data.getUserProfile.headline,
+                yelpingSince: response.data.getUserProfile.yelpingSince,
+                thingsILove: response.data.getUserProfile.thingsILove,
+                blogLink: response.data.getUserProfile.blogLink,
+                profileImagePath: profile_picture
             } )
 
-        } );
+        } ).catch( e => {
+            console.log( "error", e );
+
+        } )
+
+        // let email = "user2@gmail.com"
+        // return axios.get( BACKEND_URL + '/users/about/' + email ).then( ( response ) => {
+        //     // console.log( response )
+        //     if ( response.status === 200 ) {
+        //         console.log( "got data" )
+        //         // let imagePath = BACKEND_URL + "/images/profilepics/" + response.data.profilePicture
+        //         // if ( response.data.profilePicture === null ) {
+        //         //     console.log( "inside imagepath null" )
+        //             imagePath = profile_picture
+        //         // }
+        //         this.setState( {
+        //             userID: response.data.userID,
+        //             name: response.data.name,
+        //             nickName: response.data.nickName,
+        //             email: response.data.email,
+        //             contactNumber: response.data.contactNumber,
+        //             dateOfBirth: response.data.dateOfBirth,
+        //             city: response.data.city,
+        //             state: response.data.state,
+        //             country: response.data.country,
+        //             headline: response.data.headline,
+        //             yelpingSince: response.data.yelpingSince,
+        //             thingsILove: response.data.thingsILove,
+        //             blogLink: response.data.blogLink,
+        //             profileImagePath: imagePath
+        //         } )
+        //     }
+        //     // console.log( this.state );
+
+        // } ).catch( ( err ) => {
+        //     console.log( " error getting user data", err )
+        //     this.setState( {
+        //         error: true
+        //     } )
+
+        // } );
     }
 
 
@@ -137,7 +169,7 @@ export class UserAbout extends Component {
                             </div>
                             {/* reviews */ }
                             <div className="col-8" style={ { "padding": "0 15px", "border-left": "1px solid #e6e6e6" } }>
-                                <GetReviews reviewData={ this.state } />
+                                {/* <GetReviews reviewData={ this.state } /> */ }
 
                             </div>
 
@@ -153,4 +185,8 @@ export class UserAbout extends Component {
 
 }
 
-export default UserAbout
+export default compose(
+    withApollo,
+    graphql( getUserProfile, { name: "getUserProfile" } ),
+
+)( UserAbout );

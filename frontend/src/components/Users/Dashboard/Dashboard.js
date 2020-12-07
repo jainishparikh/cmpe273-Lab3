@@ -5,6 +5,9 @@ import axios from 'axios';
 import BACKEND_URL from '../../../config/config';
 import IndividualRestaurant from './IndividualRestaurant';
 import Maps from './Map';
+import { graphql, compose, withApollo } from 'react-apollo';
+import { Query } from "react-apollo";
+import { getAllRestaurants } from '../../../queries/queries'
 
 
 export class Dashboard extends Component {
@@ -20,39 +23,51 @@ export class Dashboard extends Component {
 
     componentDidMount () {
         // getting all restaurants
-        axios.get( BACKEND_URL + '/restaurants/all' ).then( responseRestaurants => {
-            // console.log( "got all restaurants", response.data )
-            axios.get( BACKEND_URL + '/restaurants/dishes' ).then( responseDishes => {
-
-                let tempMap = {}
-                let resID = ""
-                responseDishes.data.map( dish => {
-                    resID = dish.FK_dishes_restaurants
-                    if ( resID in tempMap ) {
-                        tempMap[ resID ] += dish.dishName
-                    } else {
-                        tempMap[ dish.FK_dishes_restaurants ] = dish.dishName
-                    }
-                } )
-
-                responseRestaurants.data.map( ( restaurant ) => {
-                    restaurant[ "dishNames" ] = tempMap[ restaurant.restaurantID ]
-                    this.setState( {
-                        Restaurants: [ ...this.state.Restaurants, restaurant ],
-                        // searchInput: "",
-
-                    } )
-
-                } )
-                console.log( this.state )
-            } ).catch( error => {
-                console.log( "Error fetching dishes", error )
+        this.props.client.query( {
+            query: getAllRestaurants,
+        } ).then( response => {
+            console.log( "res", response.data.getAllRestaurants )
+            this.setState( {
+                Restaurants: response.data.getAllRestaurants
             } )
+            console.log( this.state )
+        } ).catch( e => {
+            console.log( "error", e );
 
-
-        } ).catch( error => {
-            console.log( "Error in fetching restaurants : ", error );
         } )
+        // axios.get( BACKEND_URL + '/restaurants/all' ).then( responseRestaurants => {
+        //     // console.log( "got all restaurants", response.data )
+        //     axios.get( BACKEND_URL + '/restaurants/dishes' ).then( responseDishes => {
+
+        //         let tempMap = {}
+        //         let resID = ""
+        //         responseDishes.data.map( dish => {
+        //             resID = dish.FK_dishes_restaurants
+        //             if ( resID in tempMap ) {
+        //                 tempMap[ resID ] += dish.dishName
+        //             } else {
+        //                 tempMap[ dish.FK_dishes_restaurants ] = dish.dishName
+        //             }
+        //         } )
+
+        //         responseRestaurants.data.map( ( restaurant ) => {
+        //             restaurant[ "dishNames" ] = tempMap[ restaurant.restaurantID ]
+        //             this.setState( {
+        //                 Restaurants: [ ...this.state.Restaurants, restaurant ],
+        //                 // searchInput: "",
+
+        //             } )
+
+        //         } )
+        //         console.log( this.state )
+        //     } ).catch( error => {
+        //         console.log( "Error fetching dishes", error )
+        //     } )
+
+
+        // } ).catch( error => {
+        //     console.log( "Error in fetching restaurants : ", error );
+        // } )
 
 
     }
@@ -76,7 +91,7 @@ export class Dashboard extends Component {
             return <Redirect to='/login' />
         }
         let searchedRestaurants = this.state.Restaurants.filter( ( restaurant ) => {
-            return restaurant.name.toLowerCase().includes( this.state.searchInput.toLowerCase() ) || restaurant.dishNames.toLowerCase().includes( this.state.searchInput.toLowerCase() ) || restaurant.restaurantType.toLowerCase().includes( this.state.searchInput.toLowerCase() )
+            return restaurant.name.toLowerCase().includes( this.state.searchInput.toLowerCase() ) || restaurant.restaurantType.toLowerCase().includes( this.state.searchInput.toLowerCase() )
         } )
 
         let filteredRestaurants = searchedRestaurants.filter( ( restaurant ) => {
@@ -122,4 +137,8 @@ export class Dashboard extends Component {
     }
 }
 
-export default Dashboard
+export default compose(
+    withApollo,
+    graphql( getAllRestaurants, { name: "getAllRestaurants" } ),
+
+)( Dashboard );

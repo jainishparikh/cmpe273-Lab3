@@ -2,7 +2,8 @@ import React, { Component } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import BACKEND_URL from '../../config/config';
-
+import { graphql, compose } from 'react-apollo';
+import { userSignUpMutation, restaurantSignUpMutation } from '../../mutations/mutations'
 import yelp_image from '../../images/yelp-login.png'
 export class Signup extends Component {
     constructor( props ) {
@@ -72,37 +73,64 @@ export class Signup extends Component {
 
 
             if ( this.state.type === 'users' ) {
-                axios
-                    .post( BACKEND_URL + '/users/signup', this.state )
-                    .then( ( response ) => {
-                        if ( response.status === 200 ) {
-                            window.location.assign( '/login' )
-                        }
+                this.props.userSignUpMutation( {
+                    variables: {
+                        name: this.state.name,
+                        email: this.state.email,
+                        password: this.state.password,
+                    }
+                    //refetchQueries: [{ query: getBooksQuery }]
+                } ).then( ( sendD ) => {
+                    console.log( sendD )
+                    console.log( sendD.data )
 
-                    } )
-                    .catch( ( err ) => {
-                        this.setState( {
-                            error: true
-                        } )
+                    window.location.replace( '/login' )
+                } );
+                // axios
+                //     .post( BACKEND_URL + '/users/signup', this.state )
+                //     .then( ( response ) => {
+                //         if ( response.status === 200 ) {
+                //             window.location.assign( '/login' )
+                //         }
 
-                    } );
+                //     } )
+                //     .catch( ( err ) => {
+                //         this.setState( {
+                //             error: true
+                //         } )
+
+                //     } );
             } else if ( this.state.type === 'restaurants' ) {
-                axios
-                    .post( BACKEND_URL + '/restaurants/signup', this.state )
-                    .then( ( response ) => {
-                        console.log( response )
-                        if ( response.status === 200 ) {
-                            console.log( "redirecting to login" )
-                            window.location.assign( '/login' )
-                        }
+                this.props.restaurantSignUpMutation( {
+                    variables: {
+                        name: this.state.name,
+                        email: this.state.email,
+                        password: this.state.password,
+                        location: this.state.address
+                    }
+                    //refetchQueries: [{ query: getBooksQuery }]
+                } ).then( ( sendD ) => {
+                    console.log( sendD )
+                    console.log( sendD.data )
 
-                    } ).catch( ( err ) => {
-                        console.log( "inside restaurant error" )
-                        this.setState( {
-                            error: true
-                        } )
+                    window.location.replace( '/login' )
+                } );
+                // axios
+                //     .post( BACKEND_URL + '/restaurants/signup', this.state )
+                //     .then( ( response ) => {
+                //         console.log( response )
+                //         if ( response.status === 200 ) {
+                //             console.log( "redirecting to login" )
+                //             window.location.assign( '/login' )
+                //         }
 
-                    } );
+                //     } ).catch( ( err ) => {
+                //         console.log( "inside restaurant error" )
+                //         this.setState( {
+                //             error: true
+                //         } )
+
+                //     } );
             }
         }
     };
@@ -183,4 +211,8 @@ export class Signup extends Component {
     }
 }
 
-export default Signup
+export default compose(
+    graphql( userSignUpMutation, { name: "userSignUpMutation" } ),
+    graphql( restaurantSignUpMutation, { name: "restaurantSignUpMutation" } )
+
+)( Signup );

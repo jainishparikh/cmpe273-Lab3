@@ -4,6 +4,9 @@ import axios from 'axios';
 import BACKEND_URL from '../../../config/config';
 import Modal from 'react-modal';
 import profile_picture from '../../../images/restaurant.jpeg'
+import { graphql, compose, withApollo } from 'react-apollo';
+import { Query } from "react-apollo";
+import { getRestaurantProfileByID } from '../../../queries/queries'
 
 
 export class IndividualOrder extends Component {
@@ -17,19 +20,34 @@ export class IndividualOrder extends Component {
     }
 
     componentDidMount () {
-        var restaurantID = this.props.orderData.ref_restaurantID
+        var restaurantID = this.props.orderData.restaurantID
         console.log( "orderData", this.props.orderData )
         console.log( "resid", restaurantID )
-        return axios.get( BACKEND_URL + '/restaurants/aboutbyID/' + restaurantID ).then( response => {
-
+        this.props.client.query( {
+            query: getRestaurantProfileByID,
+            variables: {
+                restaurantID: restaurantID
+            }
+        } ).then( response => {
+            console.log( "res", response.data.getRestaurantProfileByID )
             this.setState( {
-                restaurantData: response.data
+                restaurantData: response.data.getRestaurantProfileByID
             } )
-            console.log( this.state.restaurantData )
+            console.log( this.state )
+        } ).catch( e => {
+            console.log( "error", e );
 
-        } ).catch( error => {
-            console.log( "Erron in fetching restaurant data", error )
         } )
+        // return axios.get( BACKEND_URL + '/restaurants/aboutbyID/' + restaurantID ).then( response => {
+
+        //     this.setState( {
+        //         restaurantData: response.data
+        //     } )
+        //     console.log( this.state.restaurantData )
+
+        // } ).catch( error => {
+        //     console.log( "Erron in fetching restaurant data", error )
+        // } )
     }
 
     toggleDetailsPopUp = ( e ) => {
@@ -38,50 +56,51 @@ export class IndividualOrder extends Component {
         } )
     }
 
-    displayPicture = ( name ) => {
-        if ( name === null || name === "" ) {
-            var restaurantImagePath = profile_picture
-        } else {
-            var restaurantImagePath = BACKEND_URL + "/images/profilepics/" + name
-        }
+    displayPicture = () => {
+        var restaurantImagePath = profile_picture
+
         return (
 
             <img src={ restaurantImagePath } width="200px" height="195px" alt="" />
 
         )
     }
-    cancelOrder = () => {
-        var orderID = this.props.orderData.orderID
-        var data = {
-            orderStatus: 'Cancel'
-        }
-        console.log( orderID )
-        axios.put( BACKEND_URL + '/orders/users/cancel/' + orderID, data ).then( response => {
-            this.setState( {
-                cancelled: true
-            } )
-            console.log( "Updated and Canceled" )
+    // cancelOrder = () => {
+    //     var orderID = this.props.orderData.orderID
+    //     var data = {
+    //         orderStatus: 'Cancel'
+    //     }
+    //     console.log( orderID )
+    //     axios.put( BACKEND_URL + '/orders/users/cancel/' + orderID, data ).then( response => {
+    //         this.setState( {
+    //             cancelled: true
+    //         } )
+    //         console.log( "Updated and Canceled" )
 
-        } ).catch( error => {
-            console.log( "Error in updating status: ", error )
-        } )
-    }
+    //     } ).catch( error => {
+    //         console.log( "Error in updating status: ", error )
+    //     } )
+    // }
 
     render () {
         let cancel = null;
-        if ( this.props.orderData.cancelled === 'No' ) {
+        // if ( this.props.orderData.cancelled === 'No' ) {
 
-            cancel = <button className="btn btn-danger " onClick={ this.cancelOrder }>Cancel Order </button>
+        //     cancel = <button className="btn btn-danger " onClick={ this.cancelOrder }>Cancel Order </button>
 
-        } else {
-            cancel = <button className="btn btn-danger " >Order Cancelled </button>
-        }
+        // } else {
+        //     cancel = <button className="btn btn-danger " >Order Cancelled </button>
+        // }
+        let orderTime = this.props.orderData.orderDate.split( '-' )
+        let date = orderTime[ 1 ] + '/' + orderTime[ 2 ] + '/' + orderTime[ 0 ]
+        let time = orderTime[ 3 ] + ':' + orderTime[ 4 ] + ':' + orderTime[ 5 ]
+
 
         return (
             <div style={ { "padding-top": "20px" } }>
                 <div className="row  m-2" style={ { "padding": "5px", "width": "100%", "height": "200px", "background": "whitesmoke" } }>
                     <div className="col-3" style={ { "padding": "0px" } }>
-                        { this.displayPicture( this.state.restaurantData.profilePicture ) }
+                        { this.displayPicture() }
                     </div>
                     <div className='col-3'>
 
@@ -97,19 +116,19 @@ export class IndividualOrder extends Component {
                     </div>
                     <div className='col-3'>
 
-                        <ul style={ { "list-style-type": "none", "padding-left": "0px" } }>
+                        <ul style={ { "list-style-type": "none", "padding": "0px" } }>
                             <li><h6>Placed On:</h6></li>
                             <li><h6>Date:</h6></li>
-                            <li>{ ( this.props.orderData.orderDate ).split( 'T' )[ 0 ] }</li>
+                            <li>{ date }</li>
                             <li><h6>Time:</h6></li>
-                            <li>{ ( ( this.props.orderData.orderDate ).split( 'T' )[ 1 ] ).slice( 0, -5 ) }</li>
+                            <li>{ time }</li>
 
                         </ul>
 
                     </div>
                     <div className="col-3" style={ { "padding-right": "0px" } }>
                         <ul style={ { "list-style-type": "none" } }>
-                            <li><h6>OrderID:</h6>{ this.props.orderData.orderID }</li>
+                            <li><h6>OrderID:</h6>{ this.props.orderData._id }</li>
                             <li><h5>Order Status:</h5></li>
                             <li>{ this.props.orderData.orderStatus }</li>
                             <li>&nbsp;</li>
@@ -152,7 +171,8 @@ export class IndividualOrder extends Component {
                                 padding: '20px'
                             }
                         } } >
-                            <OrderDetails orderData={ this.props.orderData.orderID } closePopUp={ this.toggleDetailsPopUp } />
+                            {/* <OrderDetails orderData={ this.props.orderData.orderID } closePopUp={ this.toggleDetailsPopUp } /> */ }
+                            <OrderDetails dishes={ this.props.orderData.dishes } closePopUp={ this.toggleDetailsPopUp } />
                         </Modal>
                     </div>
                 </div>
@@ -161,4 +181,10 @@ export class IndividualOrder extends Component {
     }
 }
 
-export default IndividualOrder
+// export default IndividualOrder
+
+export default compose(
+    withApollo,
+    graphql( getRestaurantProfileByID, { name: "getRestaurantProfileByID" } ),
+
+)( IndividualOrder );

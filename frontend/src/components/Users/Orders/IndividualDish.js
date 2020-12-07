@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import Modal from 'react-modal';
 import BACKEND_URL from '../../../config/config'
 import cookie from 'react-cookies';
+import dish_picture from '../../../images/dish.jpg';
 
 export class IndividualDish extends Component {
     constructor( props ) {
@@ -13,7 +14,7 @@ export class IndividualDish extends Component {
             dishPrice: this.props.dishData.dishPrice,
             dishDescription: this.props.dishData.dishDescription,
             dishCategory: this.props.dishData.dishCategory,
-            dishPicture: this.props.dishData.dishPicture,
+            dishPicture: dish_picture,
             dishPopUp: false,
             addedToOrder: false,
         }
@@ -26,7 +27,7 @@ export class IndividualDish extends Component {
     }
 
     displayPicture = ( name ) => {
-        var dishImagePath = BACKEND_URL + "/images/dishes/" + name
+        var dishImagePath = dish_picture
         return (
 
             <img src={ dishImagePath } width="200px" height="180px" alt="" />
