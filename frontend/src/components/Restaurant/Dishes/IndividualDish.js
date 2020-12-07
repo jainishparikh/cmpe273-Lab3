@@ -3,6 +3,8 @@ import AddDishes from './AddDishes';
 import Modal from 'react-modal';
 import BACKEND_URL from '../../../config/config'
 import cookie from 'react-cookies';
+import dish_picture from '../../../images/dish.jpg';
+
 
 export class IndividualDish extends Component {
     constructor( props ) {
@@ -25,8 +27,8 @@ export class IndividualDish extends Component {
         } )
     }
 
-    displayPicture = ( name ) => {
-        var dishImagePath = BACKEND_URL + "/images/dishes/" + name
+    displayPicture = () => {
+        var dishImagePath = dish_picture
         return (
 
             <img src={ dishImagePath } width="200px" height="180px" alt="" />
@@ -51,7 +53,7 @@ export class IndividualDish extends Component {
             <div>
                 <div className="row p-1 m-2" style={ { "width": "100%", "height": "200px", "background": "whitesmoke" } }>
                     <div className="col-4">
-                        { this.displayPicture( this.state.dishPicture ) }
+                        { this.displayPicture() }
                     </div>
                     <div className='col-6'>
                         <div className='row'><h3>{ this.state.dishName }</h3></div>

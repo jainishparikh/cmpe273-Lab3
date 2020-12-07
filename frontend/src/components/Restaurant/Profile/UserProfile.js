@@ -5,7 +5,10 @@ import cookie from 'react-cookies';
 import axios from 'axios';
 import profile_picture from '../../../images/profile.png';
 import BACKEND_URL from '../../../config/config';
-import GetReviews from '../Reviews/GetReviews';
+//import GetReviews from '../Reviews/GetReviews';
+import { graphql, compose, withApollo } from 'react-apollo';
+import { Query } from "react-apollo";
+import { getUserProfile } from '../../../queries/queries'
 
 export class UserProfile extends Component {
     constructor( props ) {
@@ -31,40 +34,68 @@ export class UserProfile extends Component {
 
     componentDidMount () {
         let email = this.props.match.params.userEmail
-        axios.get( BACKEND_URL + '/users/about/' + email ).then( ( response ) => {
-            if ( response.status === 200 ) {
-                console.log( "got data" )
-                let imagePath = BACKEND_URL + "/images/profilepics/" + response.data.profilePicture
-                if ( response.data.profilePicture === null ) {
-                    console.log( "inside imagepath null" )
-                    imagePath = profile_picture
-                }
-                this.setState( {
-                    userID: response.data.userID,
-                    name: response.data.name,
-                    nickName: response.data.nickName,
-                    email: response.data.email,
-                    contactNumber: response.data.contactNumber,
-                    dateOfBirth: response.data.dateOfBirth,
-                    city: response.data.city,
-                    state: response.data.state,
-                    country: response.data.country,
-                    headline: response.data.headline,
-                    yelpingSince: response.data.yelpingSince,
-                    thingsILove: response.data.thingsILove,
-                    blogLink: response.data.blogLink,
-                    profileImagePath: imagePath
-                } )
-            }
-            console.log( this.state );
+        this.props.client.query( {
+            query: getUserProfile,
 
-        } ).catch( ( err ) => {
-            console.log( " error getting user data" )
+            variables: {
+                email: email
+            }
+        } ).then( response => {
             this.setState( {
-                error: true
+                userID: response.data.getUserProfile._id,
+                name: response.data.getUserProfile.name,
+                nickName: response.data.getUserProfile.nickName,
+                email: response.data.getUserProfile.email,
+                contactNumber: response.data.getUserProfile.contactNumber,
+                dateOfBirth: response.data.getUserProfile.dateOfBirth,
+                city: response.data.getUserProfile.city,
+                state: response.data.getUserProfile.state,
+                country: response.data.getUserProfile.country,
+                headline: response.data.getUserProfile.headline,
+                yelpingSince: response.data.getUserProfile.yelpingSince,
+                thingsILove: response.data.getUserProfile.thingsILove,
+                blogLink: response.data.getUserProfile.blogLink,
+                profileImagePath: profile_picture
             } )
 
-        } );
+        } ).catch( e => {
+            console.log( "error", e );
+
+        } )
+        // axios.get( BACKEND_URL + '/users/about/' + email ).then( ( response ) => {
+        //     if ( response.status === 200 ) {
+        //         console.log( "got data" )
+        //         let imagePath = BACKEND_URL + "/images/profilepics/" + response.data.profilePicture
+        //         if ( response.data.profilePicture === null ) {
+        //             console.log( "inside imagepath null" )
+        //             imagePath = profile_picture
+        //         }
+        //         this.setState( {
+        //             userID: response.data.userID,
+        //             name: response.data.name,
+        //             nickName: response.data.nickName,
+        //             email: response.data.email,
+        //             contactNumber: response.data.contactNumber,
+        //             dateOfBirth: response.data.dateOfBirth,
+        //             city: response.data.city,
+        //             state: response.data.state,
+        //             country: response.data.country,
+        //             headline: response.data.headline,
+        //             yelpingSince: response.data.yelpingSince,
+        //             thingsILove: response.data.thingsILove,
+        //             blogLink: response.data.blogLink,
+        //             profileImagePath: imagePath
+        //         } )
+        //     }
+        //     console.log( this.state );
+
+        // } ).catch( ( err ) => {
+        //     console.log( " error getting user data" )
+        //     this.setState( {
+        //         error: true
+        //     } )
+
+        // } );
     }
 
     goBackTo = ( e ) => {
@@ -76,10 +107,10 @@ export class UserProfile extends Component {
             redirectVar = <Redirect to="/login" />
         }
 
-        let displayReviews = <div className="col-8" style={ { "padding": "0 15px", "border-left": "1px solid #e6e6e6" } }>
-            <GetReviews userID={ this.props.match.params.userID } />
+        // let displayReviews = <div className="col-8" style={ { "padding": "0 15px", "border-left": "1px solid #e6e6e6" } }>
+        //     <GetReviews userID={ this.props.match.params.userID } />
 
-        </div>
+        // </div>
         return (
             <div>
                 { redirectVar }
@@ -137,7 +168,7 @@ export class UserProfile extends Component {
                         </div>
                         <div className="row">
                             <div className="col-2"></div>
-                            { displayReviews }
+                            {/* { displayReviews } */ }
                         </div>
 
 
@@ -150,4 +181,9 @@ export class UserProfile extends Component {
     }
 }
 
-export default UserProfile
+// export default UserProfile
+export default compose(
+    withApollo,
+    graphql( getUserProfile, { name: "getUserProfile" } ),
+
+)( UserProfile );

@@ -4,6 +4,9 @@ import { Redirect } from 'react-router';
 import cookie from 'react-cookies';
 import axios from 'axios';
 import BACKEND_URL from '../../../config/config'
+import { graphql, compose, withApollo } from 'react-apollo';
+import { Query } from "react-apollo";
+import { addReviewMutation } from '../../../mutations/mutations'
 
 export class AddReview extends Component {
     constructor( props ) {
@@ -27,25 +30,42 @@ export class AddReview extends Component {
 
     handleOnSubmit = sub => {
         sub.preventDefault()
-        var data = {
-            userID: cookie.load( 'id' ),
-            reviewerName: cookie.load( 'name' ),
-            restaurantID: this.props.reviewData.restaurantID,
-            restaurantName: this.props.reviewData.name,
-            reviewText: this.state.reviewText,
-            headline: this.state.headline,
-            ratings: this.state.ratings,
-            date: this.state.date,
-        }
+        // var data = {
+        //     userID: cookie.load( 'id' ),
+        //     reviewerName: cookie.load( 'name' ),
+        //     restaurantID: this.props.reviewData.restaurantID,
+        //     restaurantName: this.props.reviewData.name,
+        //     reviewText: this.state.reviewText,
+        //     headline: this.state.headline,
+        //     ratings: this.state.ratings,
+        //     date: this.state.date,
+        // }
         console.log( "in handleOnsubmit" )
-        axios.post( BACKEND_URL + '/reviews/addreview', data ).then( response => {
-            if ( response.status === 200 ) {
-                console.log( "review added" );
-                window.location.assign( '/users/restaurantprofiles/' + this.props.reviewData.email + '/' + this.props.reviewData.restaurantID )
+        this.props.addReviewMutation( {
+            variables: {
+                userID: cookie.load( 'id' ),
+                reviewerName: cookie.load( 'name' ),
+                restaurantID: this.props.reviewData.restaurantID,
+                restaurantName: this.props.reviewData.name,
+                reviewText: this.state.reviewText,
+                headline: this.state.headline,
+                ratings: ( this.state.ratings ).toString(),
+                date: ( this.state.date ).toString(),
             }
-        } ).catch( error => {
-            console.log( "Erron in posting review: ", error )
-        } )
+            //refetchQueries: [{ query: getBooksQuery }]
+        } ).then( ( response ) => {
+            console.log( "resp", response )
+            window.location.assign( '/users/restaurantprofiles/' + this.props.reviewData.email + '/' + this.props.reviewData.restaurantID )
+
+        } );
+        // axios.post( BACKEND_URL + '/reviews/addreview', data ).then( response => {
+        //     if ( response.status === 200 ) {
+        //         console.log( "review added" );
+        //         window.location.assign( '/users/restaurantprofiles/' + this.props.reviewData.email + '/' + this.props.reviewData.restaurantID )
+        //     }
+        // } ).catch( error => {
+        //     console.log( "Erron in posting review: ", error )
+        // } )
     }
     render () {
         return (
@@ -89,4 +109,8 @@ export class AddReview extends Component {
     }
 }
 
-export default AddReview
+// export default AddReview
+export default compose(
+    graphql( addReviewMutation, { name: "addReviewMutation" } ),
+
+)( AddReview );

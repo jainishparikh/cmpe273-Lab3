@@ -4,6 +4,10 @@ import { Redirect } from 'react-router';
 import cookie from 'react-cookies';
 import axios from 'axios';
 import BACKEND_URL from '../../../config/config'
+import { graphql, compose, withApollo } from 'react-apollo';
+import { Query } from "react-apollo";
+import { addDishMutation, editDishMutation } from '../../../mutations/mutations'
+import { add } from 'lodash';
 
 
 export class AddDishes extends Component {
@@ -50,83 +54,119 @@ export class AddDishes extends Component {
     handleOnSubmit = sub => {
         sub.preventDefault();
         if ( this.props.call === "edit" ) {
-            var dishData = {
-                dishID: this.state.dishID,
-                dishName: this.state.dishName,
-                dishIngrediants: this.state.dishIngrediants,
-                dishPrice: this.state.dishPrice,
-                dishDescription: this.state.dishDescription,
-                dishCategory: this.state.dishCategory
+            // var dishData = {
+            //     dishID: this.state.dishID,
+            //     dishName: this.state.dishName,
+            //     dishIngrediants: this.state.dishIngrediants,
+            //     dishPrice: this.state.dishPrice,
+            //     dishDescription: this.state.dishDescription,
+            //     dishCategory: this.state.dishCategory
 
-            }
-
-            var api_path = "";
-            if ( this.state.newDishImage === "" ) {
-                console.log( "without new image" )
-                var formData = dishData;
-                var config = {
-                    headers: {
-                        'content-type': 'application/json'
-                    }
+            // }
+            this.props.editDishMutation( {
+                variables: {
+                    restaurantID: cookie.load( 'id' ),
+                    dishID: this.state.dishID,
+                    dishName: this.state.dishName,
+                    dishIngrediants: this.state.dishIngrediants,
+                    dishPrice: this.state.dishPrice,
+                    dishDescription: this.state.dishDescription,
+                    dishCategory: this.state.dishCategory
                 }
-                api_path = "/restaurants/dishes/withoutimage"
-            } else {
-                api_path = "/restaurants/dishes/withimage"
-                var formData = new FormData();
-                formData.append( 'myImage', this.state.newDishImage, this.state.newDishImage.name )
+                //refetchQueries: [{ query: getBooksQuery }]
+            } ).then( ( response ) => {
+                console.log( response )
+                window.location.assign( "/restaurants/about" );
 
-                for ( var key in dishData ) {
-                    formData.append( key, dishData[ key ] );
-                }
 
-                var config = {
-                    headers: {
-                        'content-type': 'multipart/form-data'
-                    }
-                }
-            }
-            console.log( formData );
-            axios
-                .put( BACKEND_URL + api_path, formData, config ).then( response => {
-                    if ( response.status === 200 ) {
-                        console.log( "dish successfully added" + response );
+            } );
 
-                        window.location.assign( "/restaurants/about" )
-                    }
-                } ).catch( err => {
-                    console.log( "Error in adding dish" );
-                } )
+            // var api_path = "";
+            // if ( this.state.newDishImage === "" ) {
+            //     console.log( "without new image" )
+            //     var formData = dishData;
+            //     var config = {
+            //         headers: {
+            //             'content-type': 'application/json'
+            //         }
+            //     }
+            //     api_path = "/restaurants/dishes/withoutimage"
+            // } else {
+            //     api_path = "/restaurants/dishes/withimage"
+            //     var formData = new FormData();
+            //     formData.append( 'myImage', this.state.newDishImage, this.state.newDishImage.name )
+
+            //     for ( var key in dishData ) {
+            //         formData.append( key, dishData[ key ] );
+            //     }
+
+            //     var config = {
+            //         headers: {
+            //             'content-type': 'multipart/form-data'
+            //         }
+            //     }
+            // }
+            // console.log( formData );
+            // axios
+            //     .put( BACKEND_URL + api_path, formData, config ).then( response => {
+            //         if ( response.status === 200 ) {
+            //             console.log( "dish successfully added" + response );
+
+            //             window.location.assign( "/restaurants/about" )
+            //         }
+            //     } ).catch( err => {
+            //         console.log( "Error in adding dish" );
+            //     } )
 
         } else {
-            var dishData = {
-                restaurantID: cookie.load( 'id' ),
-                dishName: this.state.dishName,
-                dishIngrediants: this.state.dishIngrediants,
-                dishPrice: this.state.dishPrice,
-                dishDescription: this.state.dishDescription,
-                dishCategory: this.state.dishCategory
+            // var dishData = {
+            //     restaurantID: cookie.load( 'id' ),
+            //     dishName: this.state.dishName,
+            //     dishIngrediants: this.state.dishIngrediants,
+            //     dishPrice: this.state.dishPrice,
+            //     dishDescription: this.state.dishDescription,
+            //     dishCategory: this.state.dishCategory
 
-            }
-            const formData = new FormData();
-            formData.append( 'myImage', this.state.newDishImage, this.state.newDishImage.name )
-            for ( var key in dishData ) {
-                formData.append( key, dishData[ key ] );
-            }
-            const config = {
-                headers: {
-                    'content-type': 'multipart/form-data'
+            // }
+            console.log( "IN ADD DISH" )
+            this.props.addDishMutation( {
+                variables: {
+                    restaurantID: cookie.load( 'id' ),
+                    dishName: this.state.dishName,
+                    dishIngrediants: this.state.dishIngrediants,
+                    dishPrice: this.state.dishPrice,
+                    dishDescription: this.state.dishDescription,
+                    dishCategory: this.state.dishCategory
                 }
-            }
-            axios
-                .post( BACKEND_URL + "/restaurants/dishes", formData, config ).then( response => {
-                    if ( response.status === 200 ) {
-                        console.log( "dish successfully added" + response );
+                //refetchQueries: [{ query: getBooksQuery }]
+            } ).then( ( response ) => {
+                console.log( response )
+                window.location.assign( "/restaurants/about" );
 
-                        window.location.assign( "/restaurants/about" )
-                    }
-                } ).catch( err => {
-                    console.log( "Error in adding dish" );
-                } )
+
+            } ).catch( err => {
+                console.log( "error", err )
+            } );
+            // const formData = new FormData();
+            // formData.append( 'myImage', this.state.newDishImage, this.state.newDishImage.name )
+            // for ( var key in dishData ) {
+            //     formData.append( key, dishData[ key ] );
+            // }
+            // const config = {
+            //     headers: {
+            //         'content-type': 'multipart/form-data'
+            //     }
+            // }
+            // axios
+            //     .post( BACKEND_URL + "/restaurants/dishes", formData, config ).then( response => {
+            //         if ( response.status === 200 ) {
+            //             console.log( "dish successfully added" + response );
+
+            //             window.location.assign( "/restaurants/about" )
+            //         }
+            //     } ).catch( err => {
+            //         console.log( "Error in adding dish" );
+            //     } )
         }
 
 
@@ -182,10 +222,10 @@ export class AddDishes extends Component {
                 <div className="container" >
 
                     <form onSubmit={ this.handleOnSubmit }>
-                        <div className="row mt-2">
+                        {/* <div className="row mt-2">
                             <input type="file" name="newDishImage" onChange={ this.handleImageUpload } />
 
-                        </div>
+                        </div> */}
                         <div className="row mt-2">
                             <div className="col-3">
                                 Dish Name: <input type="text" className="form-control" name="dishName" required
@@ -231,4 +271,9 @@ export class AddDishes extends Component {
     }
 }
 
-export default AddDishes
+// export default AddDishes
+export default compose(
+    graphql( addDishMutation, { name: "addDishMutation" } ),
+    graphql( editDishMutation, { name: "editDishMutation" } ),
+
+)( AddDishes );

@@ -2,6 +2,9 @@ import React, { Component } from 'react'
 import axios from 'axios'
 import BACKEND_URL from '../../../config/config';
 import cookie from 'react-cookies';
+import { graphql, compose, withApollo } from 'react-apollo';
+import { Query } from "react-apollo";
+import { getReviewByUserID } from '../../../queries/queries'
 
 export class GetReviews extends Component {
     constructor( props ) {
@@ -13,15 +16,30 @@ export class GetReviews extends Component {
     }
     componentDidMount () {
         var userID = cookie.load( 'id' )
-        axios.get( BACKEND_URL + '/reviews/getreviews/users/' + userID ).then( response => {
-            response.data.map( ( review => {
-                this.setState( {
-                    Reviews: [ ...this.state.Reviews, review ]
-                } )
-            } ) )
-        } ).catch( error => {
-            console.log( "Error in getting reviews: ", error )
+        this.props.client.query( {
+            query: getReviewByUserID,
+
+            variables: {
+                userID: userID
+            }
+        } ).then( response => {
+            this.setState( {
+                Reviews: response.data.getReviewByUserID
+            } )
+
+        } ).catch( e => {
+            console.log( "error", e );
+
         } )
+        // axios.get( BACKEND_URL + '/reviews/getreviews/users/' + userID ).then( response => {
+        //     response.data.map( ( review => {
+        //         this.setState( {
+        //             Reviews: [ ...this.state.Reviews, review ]
+        //         } )
+        //     } ) )
+        // } ).catch( error => {
+        //     console.log( "Error in getting reviews: ", error )
+        // } )
     }
     render () {
 
@@ -59,4 +77,9 @@ export class GetReviews extends Component {
     }
 }
 
-export default GetReviews
+// export default GetReviews
+export default compose(
+    withApollo,
+    graphql( getReviewByUserID, { name: "getReviewByUserID" } ),
+
+)( GetReviews );

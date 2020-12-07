@@ -169,7 +169,7 @@ export class UserAbout extends Component {
                             </div>
                             {/* reviews */ }
                             <div className="col-8" style={ { "padding": "0 15px", "border-left": "1px solid #e6e6e6" } }>
-                                {/* <GetReviews reviewData={ this.state } /> */ }
+                                <GetReviews reviewData={ this.state } />
 
                             </div>
 

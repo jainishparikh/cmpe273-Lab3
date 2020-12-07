@@ -21,6 +21,26 @@ query getUserProfile($email: String){
   }
 `;
 
+const getUserProfileByID = gql`
+query getUserProfileByID($userID: String){
+    getUserProfileByID(userID:$userID){
+        _id,
+        name,
+     email,
+     nickName,
+     contactNumber,
+     dateOfBirth,
+     city,
+     state,
+     country,
+     headline,
+     yelpingSince,
+     thingsILove,
+     blogLink,
+    }
+  }
+`;
+
 const getRestaurantProfile = gql`
 query getRestaurantProfile($email: String){
     getRestaurantProfile(email:$email){
@@ -107,5 +127,60 @@ query getOrdersByUserID($userID: String){
   }
 `;
 
+const getOrdersByRestaurantID = gql`
+query getOrdersByRestaurantID($restaurantID: String){
+    getOrdersByRestaurantID(restaurantID:$restaurantID){
+            _id,
+             userID,
+             restaurantID
+             cancelled
+             orderDate,
+             orderStatus,
+             orderMethod,
+             dishes{
+                dishID,
+                   dishName,
+                   dishPrice,
+                   dishCategory,
+                   dishIngrediants,
+                   dishDescription
+             }
+         
+    }
+  }
+`;
 
-export { getUserProfile, getAllRestaurants, getRestaurantProfile, getOrdersByUserID, getRestaurantProfileByID };
+const getReviewByUserID = gql`
+query getReviewByUserID($userID: String){
+    getReviewByUserID(userID:$userID){
+             userID
+           restaurantID,
+           headline,
+           reviewText,
+           date,
+           ratings,
+           reviewerName,
+          restaurantName,
+         
+    }
+  }
+`;
+
+const getReviewByRestaurantID = gql`
+query getReviewByRestaurantID($restaurantID: String){
+    getReviewByRestaurantID(restaurantID:$restaurantID){
+             userID
+           restaurantID,
+           headline,
+           reviewText,
+           date,
+           ratings,
+           reviewerName,
+           restaurantName,
+         
+    }
+  }
+`;
+
+
+export { getReviewByUserID, getReviewByRestaurantID, getUserProfileByID, getOrdersByRestaurantID, getUserProfile, getAllRestaurants, getRestaurantProfile, getOrdersByUserID, getRestaurantProfileByID };

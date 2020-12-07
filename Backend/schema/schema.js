@@ -570,7 +570,6 @@ const Mutation = new GraphQLObjectType( {
                 location: { type: GraphQLString },
                 contact: { type: GraphQLString },
                 description: { type: GraphQLString },
-                contact: { type: GraphQLString },
                 timing: { type: GraphQLString },
             },
             resolve ( parent, args ) {
@@ -678,7 +677,7 @@ const Mutation = new GraphQLObjectType( {
                 headline: { type: GraphQLString },
                 reviewText: { type: GraphQLString },
                 date: { type: GraphQLString },
-                ratings: { type: graphql.GraphQLFloat },
+                ratings: { type: graphql.GraphQLString },
                 restaurantName: { type: GraphQLString },
                 reviewerName: { type: GraphQLString },
             },

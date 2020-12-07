@@ -5,6 +5,9 @@ import cookie from 'react-cookies';
 import axios from 'axios';
 import ReactModal from 'react-modal';
 import BACKEND_URL from '../../../config/config'
+import { graphql, compose, withApollo } from 'react-apollo';
+import { Query } from "react-apollo";
+import { updateRestaurantProfile } from '../../../mutations/mutations'
 
 export class Profile extends Component {
     constructor( props ) {
@@ -89,78 +92,117 @@ export class Profile extends Component {
         e.preventDefault();
         console.log( "in handle submit" )
         if ( !this.state.error ) {
-            axios
-                .put( BACKEND_URL + "/restaurants/about", this.state ).then( response => {
-                    if ( response.status === 200 ) {
+            this.props.updateRestaurantProfile( {
+                variables: {
+                    name: this.state.name,
+                    email: this.state.email,
+                    location: this.state.location,
+                    contact: this.state.contact,
+                    description: this.state.description,
+                    timing: this.state.timing,
 
-                        if ( cookie.load( 'email' ) !== this.state.email ) {
-                            cookie.remove( "email", {
-                                path: '/'
-                            } );
-                            cookie.save( "email", this.state.email, {
-                                path: '/',
-                                httpOnly: false,
-                                maxAge: 90000
-                            } )
-                        }
-                        if ( cookie.load( 'name' ) !== this.state.name ) {
-                            cookie.remove( "name", {
-                                path: '/'
-                            } );
-                            cookie.save( "name", this.state.name, {
-                                path: '/',
-                                httpOnly: false,
-                                maxAge: 90000
-                            } )
-                        }
-                        window.location.assign( "/restaurants/about" );
+                }
+                //refetchQueries: [{ query: getBooksQuery }]
+            } ).then( ( response ) => {
+                if ( response.data.updateRestaurantProfile.email !== null ) {
+                    if ( cookie.load( 'email' ) !== this.state.email ) {
+                        cookie.remove( "email", {
+                            path: '/'
+                        } );
+                        cookie.save( "email", this.state.email, {
+                            path: '/',
+                            httpOnly: false,
+                            maxAge: 90000
+                        } )
                     }
+                    if ( cookie.load( 'name' ) !== this.state.name ) {
+                        cookie.remove( "name", {
+                            path: '/'
+                        } );
+                        cookie.save( "name", this.state.name, {
+                            path: '/',
+                            httpOnly: false,
+                            maxAge: 90000
+                        } )
+                    }
+                    window.location.assign( "/restaurants/about" );
 
-                } ).catch( err => {
-                    console.log( "error in updating profile" );
-                } )
+                } else {
+                    console.log( "error" )
+                }
+            } );
+            // axios
+            //     .put( BACKEND_URL + "/restaurants/about", this.state ).then( response => {
+            //         if ( response.status === 200 ) {
+
+            //             if ( cookie.load( 'email' ) !== this.state.email ) {
+            //                 cookie.remove( "email", {
+            //                     path: '/'
+            //                 } );
+            //                 cookie.save( "email", this.state.email, {
+            //                     path: '/',
+            //                     httpOnly: false,
+            //                     maxAge: 90000
+            //                 } )
+            //             }
+            //             if ( cookie.load( 'name' ) !== this.state.name ) {
+            //                 cookie.remove( "name", {
+            //                     path: '/'
+            //                 } );
+            //                 cookie.save( "name", this.state.name, {
+            //                     path: '/',
+            //                     httpOnly: false,
+            //                     maxAge: 90000
+            //                 } )
+            //             }
+            //             window.location.assign( "/restaurants/about" );
+            //         }
+
+            //     } ).catch( err => {
+            //         console.log( "error in updating profile" );
+            //     } )
 
         }
     }
 
-    //Image Upload toggle
-    toggleImageUpdate = ( e ) => {
-        this.setState( {
-            profileImageUpdate: !this.state.profileImageUpdate
-        } )
-    }
+    // //Image Upload toggle
+    // toggleImageUpdate = ( e ) => {
+    //     this.setState( {
+    //         profileImageUpdate: !this.state.profileImageUpdate
+    //     } )
+    // }
 
-    //Image Upload
-    handleImageUpload = ( e ) => {
-        this.setState( {
-            newProfileImage: e.target.files[ 0 ]
-        } )
-    }
-    //Image Submit
-    handleImageSubmit = ( e ) => {
-        e.preventDefault();
-        this.toggleImageUpdate();
-        console.log( this.state.newProfileImage );
-        const formData = new FormData();
-        formData.append( 'myImage', this.state.newProfileImage, this.state.newProfileImage.name )
-        formData.append( 'restaurantID', this.state.restaurantID )
-        const config = {
-            headers: {
-                'content-type': 'multipart/form-data'
-            }
-        }
-        axios
-            .post( BACKEND_URL + '/restaurants/uploadpicture', formData, config ).then( ( response ) => {
-                console.log( response.data.filename )
-                this.setState( {
-                    profileImagePath: BACKEND_URL + "/images/profilepics/" + response.data.filename + ""
+    // //Image Upload
+    // handleImageUpload = ( e ) => {
+    //     this.setState( {
+    //         newProfileImage: e.target.files[ 0 ]
+    //     } )
+    // }
+    // //Image Submit
+    // handleImageSubmit = ( e ) => {
+    //     e.preventDefault();
+    //     this.toggleImageUpdate();
+    //     console.log( this.state.newProfileImage );
+    //     const formData = new FormData();
+    //     formData.append( 'myImage', this.state.newProfileImage, this.state.newProfileImage.name )
+    //     formData.append( 'restaurantID', this.state.restaurantID )
+    //     const config = {
+    //         headers: {
+    //             'content-type': 'multipart/form-data'
+    //         }
+    //     }
+    //     axios
+    //         .post( BACKEND_URL + '/restaurants/uploadpicture', formData, config ).then( ( response ) => {
+    //             console.log( response.data.filename )
+    //             this.setState( {
+    //                 profileImagePath: BACKEND_URL + "/images/profilepics/" + response.data.filename + ""
 
-                } )
-            } ).catch( err => {
-                console.log( "Error in image upload: ", err );
-            } )
+    //             } )
+    //         } ).catch( err => {
+    //             console.log( "Error in image upload: ", err );
+    //         } )
 
-    }
+    // }
 
 
     render () {
@@ -181,7 +223,7 @@ export class Profile extends Component {
                             <h3>Edit Profile</h3>
                         </div>
                         <div className="col-10">
-                            <div className="row ml-3">
+                            {/* <div className="row ml-3">
                                 <button className="btn btn-primary" onClick={ this.toggleImageUpdate }>Change Profile Picture</button>
                                 <ReactModal isOpen={ this.state.profileImageUpdate } >
                                     <form onSubmit={ this.handleImageSubmit } encType='multipart/form-data' style={ { textAlign: "Center" } }>
@@ -191,7 +233,7 @@ export class Profile extends Component {
                                     </form>
                                 </ReactModal>
 
-                            </div>
+                            </div> */}
                             <form onSubmit={ this.handleOnSubmit }>
                                 <div className="row m-1">
                                     <div className="col-5">
@@ -276,4 +318,8 @@ export class Profile extends Component {
     }
 }
 
-export default Profile
+// export default Profile
+export default compose(
+    graphql( updateRestaurantProfile, { name: "updateRestaurantProfile" } ),
+
+)( Profile );

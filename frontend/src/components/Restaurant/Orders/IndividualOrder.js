@@ -4,6 +4,11 @@ import BACKEND_URL from '../../../config/config';
 import Modal from 'react-modal';
 import { Link } from 'react-router-dom';
 import profile_picture from '../../../images/profile.png';
+import { graphql, compose, withApollo } from 'react-apollo';
+import { Query } from "react-apollo";
+import { getUserProfileByID } from '../../../queries/queries'
+import { updateOrderStatusMutation } from '../../../mutations/mutations'
+
 
 export class IndividualOrder extends Component {
     constructor( props ) {
@@ -19,15 +24,33 @@ export class IndividualOrder extends Component {
 
     componentDidMount () {
 
-        var userID = this.props.orderData.ref_userID
-        axios.get( BACKEND_URL + '/users/aboutbyID/' + userID ).then( response => {
-            this.setState( {
-                userData: response.data
-            } )
+        var userID = this.props.orderData.userID
+        this.props.client.query( {
+            query: getUserProfileByID,
 
-        } ).catch( error => {
-            console.log( "Erron in fetching restaurant data", error )
+            variables: {
+                userID: userID
+            }
+
+        } ).then( response => {
+            console.log( "res", response.data.getUserProfileByID )
+
+
+            this.setState( {
+                userData: response.data.getUserProfileByID
+            } )
+        } ).catch( e => {
+            console.log( "error", e );
+
         } )
+        // axios.get( BACKEND_URL + '/users/aboutbyID/' + userID ).then( response => {
+        //     this.setState( {
+        //         userData: response.data
+        //     } )
+
+        // } ).catch( error => {
+        //     console.log( "Erron in fetching restaurant data", error )
+        // } )
     }
 
 
@@ -50,15 +73,31 @@ export class IndividualOrder extends Component {
                 orderStatus: this.state.updatedStatus
             }
         }
-        var orderID = this.props.orderData.orderID
+        var orderID = this.props.orderData._id
         console.log( orderID )
-        axios.put( BACKEND_URL + '/orders/restaurants/update/' + orderID, data ).then( response => {
+        this.props.updateOrderStatusMutation( {
+            variables: {
+                orderID: orderID,
+                orderStatus: this.state.updatedStatus
+            }
+            //refetchQueries: [{ query: getBooksQuery }]
+        } ).then( ( response ) => {
+            console.log( response )
+            // window.location.assign( "/restaurants/about" );
             this.toggleChangeStatus()
             console.log( "Updated" )
             this.props.reload( this.state.updatedStatus )
-        } ).catch( error => {
-            console.log( "Error in updating status: ", error )
-        } )
+
+        } ).catch( err => {
+            console.log( "error", err )
+        } );
+        // axios.put( BACKEND_URL + '/orders/restaurants/update/' + orderID, data ).then( response => {
+        //     this.toggleChangeStatus()
+        //     console.log( "Updated" )
+        //     this.props.reload( this.state.updatedStatus )
+        // } ).catch( error => {
+        //     console.log( "Error in updating status: ", error )
+        // } )
 
     }
     toggleDetailsPopUp = ( e ) => {
@@ -148,7 +187,7 @@ export class IndividualOrder extends Component {
                     </div>
                     <div className="col-3" style={ { "padding-right": "0px" } }>
                         <ul style={ { "list-style-type": "none" } }>
-                            <li><h6>OrderID:</h6>{ this.props.orderData.orderID }</li>
+                            <li><h6>OrderID:</h6>{ this.props.orderData._id }</li>
                             <li><h5>Order Status:</h5></li>
                             <li>
                                 { orderStatus }
@@ -161,7 +200,7 @@ export class IndividualOrder extends Component {
                     </div>
                     <div className="col-2" style={ { "padding-right": "0px" } }>
                         <div className="row">
-                            <Link className="btn btn-primary" to={ `/restaurants/userprofiles/${ this.state.userData.email }/${ this.props.orderData.ref_userID }` } >
+                            <Link className="btn btn-primary" to={ `/restaurants/userprofiles/${ this.state.userData.email }/${ this.props.orderData.userID }` } >
                                 View Profile
                     </Link>
                         </div>
@@ -176,4 +215,11 @@ export class IndividualOrder extends Component {
     }
 }
 
-export default IndividualOrder
+// export default IndividualOrder
+export default compose(
+    withApollo,
+    graphql( getUserProfileByID, { name: "getUserProfileByID" } ),
+    graphql( updateOrderStatusMutation, { name: "updateOrderStatusMutation" } ),
+
+
+)( IndividualOrder );

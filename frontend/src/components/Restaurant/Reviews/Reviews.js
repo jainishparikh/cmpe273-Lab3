@@ -4,6 +4,9 @@ import cookie from 'react-cookies';
 import axios from 'axios';
 import BACKEND_URL from '../../../config/config';
 import IndividualReview from './IndividualReview';
+import { graphql, compose, withApollo } from 'react-apollo';
+import { Query } from "react-apollo";
+import { getReviewByRestaurantID } from '../../../queries/queries'
 
 export class Reviews extends Component {
     constructor( props ) {
@@ -15,18 +18,33 @@ export class Reviews extends Component {
     componentDidMount () {
         var type = cookie.load( 'type' )
         var id = cookie.load( 'id' )
-        axios.get( BACKEND_URL + '/reviews/getreviews/' + type + '/' + id ).then( response => {
-            response.data.map( ( review ) => {
-                this.setState( {
-                    Reviews: [ ...this.state.Reviews, review ]
-                } )
+        this.props.client.query( {
+            query: getReviewByRestaurantID,
 
+            variables: {
+                restaurantID: id
+            }
+        } ).then( response => {
+            this.setState( {
+                Reviews: response.data.getReviewByRestaurantID
             } )
-            console.log( this.state )
 
-        } ).catch( error => {
-            console.log( "Error in fetching reviews: ", error );
+        } ).catch( e => {
+            console.log( "error", e );
+
         } )
+        // axios.get( BACKEND_URL + '/reviews/getreviews/' + type + '/' + id ).then( response => {
+        //     response.data.map( ( review ) => {
+        //         this.setState( {
+        //             Reviews: [ ...this.state.Reviews, review ]
+        //         } )
+
+        //     } )
+        //     console.log( this.state )
+
+        // } ).catch( error => {
+        //     console.log( "Error in fetching reviews: ", error );
+        // } )
     }
     render () {
         var redirectVar = null;
@@ -60,4 +78,9 @@ export class Reviews extends Component {
     }
 }
 
-export default Reviews
+// export default Reviews
+export default compose(
+    withApollo,
+    graphql( getReviewByRestaurantID, { name: "getReviewByRestaurantID" } ),
+
+)( Reviews );

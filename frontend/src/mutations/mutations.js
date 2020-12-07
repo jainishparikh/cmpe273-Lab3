@@ -50,6 +50,28 @@ const updateUserProfileMutation = gql`
     }
 `;
 
+const updateRestaurantProfile = gql`
+    mutation updateRestaurantProfile(
+        $name:String,   
+        $email:String,
+        $location:String,
+        $contact:String,
+        $description:String,
+        $timing:String,
+    ){
+        updateRestaurantProfile(  name:$name,   
+                            email:$email,
+                            location:$location,
+                            contact:$contact,
+                            description:$description,
+                            timing:$timing,
+                           
+                        ){
+            email
+        }
+    }
+`;
+
 
 
 const placeOrderMutation = gql`
@@ -92,4 +114,46 @@ const restaurantSignUpMutation = gql`
     }
 `;
 
-export { userLogin, userSignUpMutation, restaurantLogin, restaurantSignUpMutation, updateUserProfileMutation, placeOrderMutation };
+const addDishMutation = gql`
+    mutation addDish(
+        $restaurantID: String, $dishName: String, $dishIngrediants: String, $dishPrice: String, $dishDescription: String, $dishCategory: String){
+        addDish(restaurantID:$restaurantID, dishName:$dishName, dishIngrediants:$dishIngrediants, dishPrice:$dishPrice, dishDescription:$dishDescription, dishCategory:$dishCategory){
+            dishes{
+                       dishName
+                    }
+        }
+    }
+`;
+
+const editDishMutation = gql`
+    mutation editDish(
+        $restaurantID: String, $dishID:String,$dishName: String, $dishIngrediants: String, $dishPrice: String, $dishDescription: String, $dishCategory: String){
+            editDish(restaurantID:$restaurantID, dishID:$dishID,dishName:$dishName, dishIngrediants:$dishIngrediants, dishPrice:$dishPrice, dishDescription:$dishDescription, dishCategory:$dishCategory){
+                dishes{
+                    dishName
+                 }
+        }
+    }
+`;
+
+const updateOrderStatusMutation = gql`
+    mutation updateOrderStatus(
+        $orderID: String, $orderStatus:String){
+            updateOrderStatus(orderID:$orderID, orderStatus:$orderStatus){
+                dishes{
+                    dishName
+                 }
+        }
+    }
+`;
+
+const addReviewMutation = gql`
+    mutation addReview(
+        $restaurantID: String, $userID: String, $headline: String, $reviewText: String, $ratings: String, $restaurantName: String, $reviewerName: String, $date: String){
+            addReview(restaurantID:$restaurantID, userID:$userID, headline:$headline, reviewText:$reviewText, ratings:$ratings, restaurantName:$restaurantName,reviewerName:$reviewerName,date:$date){
+           reviewText
+        }
+    }
+`;
+
+export { addReviewMutation, updateOrderStatusMutation, userLogin, addDishMutation, editDishMutation, userSignUpMutation, restaurantLogin, restaurantSignUpMutation, updateUserProfileMutation, placeOrderMutation, updateRestaurantProfile };

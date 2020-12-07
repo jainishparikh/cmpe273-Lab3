@@ -4,6 +4,9 @@ import axios from 'axios';
 import BACKEND_URL from '../../../config/config';
 import IndividualOrder from "./IndividualOrder";
 import { Redirect } from 'react-router';
+import { graphql, compose, withApollo } from 'react-apollo';
+import { Query } from "react-apollo";
+import { getOrdersByRestaurantID } from '../../../queries/queries'
 
 export class Orders extends Component {
     constructor( props ) {
@@ -17,16 +20,34 @@ export class Orders extends Component {
 
     componentDidMount () {
         var restaurantID = cookie.load( 'id' );
-        axios.get( BACKEND_URL + '/orders/restaurants/' + restaurantID ).then( response => {
-            response.data.map( order => {
-                this.setState( {
-                    Orders: [ ...this.state.Orders, order ]
-                } )
+        this.props.client.query( {
+            query: getOrdersByRestaurantID,
+
+            variables: {
+                restaurantID: restaurantID
+            }
+
+        } ).then( response => {
+            console.log( "res", response.data.getOrdersByRestaurantID )
+
+
+            this.setState( {
+                Orders: response.data.getOrdersByRestaurantID
             } )
-            console.log( this.state )
-        } ).catch( error => {
-            console.log( "Error fetching orders for restaurant", error );
+        } ).catch( e => {
+            console.log( "error", e );
+
         } )
+        // axios.get( BACKEND_URL + '/orders/restaurants/' + restaurantID ).then( response => {
+        //     response.data.map( order => {
+        //         this.setState( {
+        //             Orders: [ ...this.state.Orders, order ]
+        //         } )
+        //     } )
+        //     console.log( this.state )
+        // } ).catch( error => {
+        //     console.log( "Error fetching orders for restaurant", error );
+        // } )
     }
 
     handleradioChange = ( e ) => {
@@ -80,4 +101,9 @@ export class Orders extends Component {
     }
 }
 
-export default Orders
+// export default Orders
+export default compose(
+    withApollo,
+    graphql( getOrdersByRestaurantID, { name: "getOrdersByRestaurantID" } ),
+
+)( Orders );
